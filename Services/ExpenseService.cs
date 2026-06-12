@@ -1,3 +1,4 @@
+using System.Globalization;
 using MoneyControl.DTOs;
 using MoneyControl.Models;
 using MoneyControl.Repositories;
@@ -8,58 +9,46 @@ public class ExpenseService(
     IExpenseRepository expenseRepository,
     ICategoryRepository categoryRepository) : IExpenseService
 {
-    public async Task<PagedResponse<ExpenseResponse>> GetAllAsync(int page = 1, int pageSize = 20)
+    public async Task<PagedResult<ExpenseResponse>> GetAllAsync(int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
     {
-        var result = await expenseRepository.GetAllAsync(page, pageSize);
-        return new PagedResponse<ExpenseResponse>(
-            result.Items.Select(MapToResponse),
-            result.TotalCount,
-            result.Page,
-            result.PageSize,
-            result.TotalPages
-        );
+        var result = await expenseRepository.GetAllAsync(page, pageSize, cancellationToken);
+        return result.Map(MapToResponse);
     }
 
-    public async Task<ExpenseResponse?> GetByIdAsync(int id)
+    public async Task<ExpenseResponse?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
-        var expense = await expenseRepository.GetByIdAsync(id);
+        var expense = await expenseRepository.GetByIdAsync(id, cancellationToken);
         return expense is null ? null : MapToResponse(expense);
     }
 
-    public async Task<PagedResponse<ExpenseResponse>> GetByCategoryAsync(int categoryId, int page = 1, int pageSize = 20)
+    public async Task<PagedResult<ExpenseResponse>> GetByCategoryAsync(int categoryId, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
     {
-        var result = await expenseRepository.GetByCategoryAsync(categoryId, page, pageSize);
-        return new PagedResponse<ExpenseResponse>(
-            result.Items.Select(MapToResponse),
-            result.TotalCount,
-            result.Page,
-            result.PageSize,
-            result.TotalPages
-        );
+        var result = await expenseRepository.GetByCategoryAsync(categoryId, page, pageSize, cancellationToken);
+        return result.Map(MapToResponse);
     }
 
-    public async Task<ExpenseResponse> CreateAsync(CreateExpenseRequest request)
+    public async Task<ExpenseResponse> CreateAsync(CreateExpenseRequest request, CancellationToken cancellationToken = default)
     {
-        var category = await categoryRepository.GetByIdAsync(request.CategoryId);
+        var category = await categoryRepository.GetByIdAsync(request.CategoryId, cancellationToken);
         if (category is null)
             throw new KeyNotFoundException($"Category with id {request.CategoryId} not found.");
 
         var expense = new Expense
         {
             Amount = request.Amount,
-            Date = DateTime.SpecifyKind(request.Date, DateTimeKind.Utc),
+            Date = ToUtc(request.Date),
             Description = request.Description,
             Type = request.Type,
             CategoryId = request.CategoryId
         };
 
-        var created = await expenseRepository.CreateAsync(expense);
+        var created = await expenseRepository.CreateAsync(expense, cancellationToken);
         return MapToResponse(created);
     }
 
-    public async Task<ExpenseResponse?> UpdateAsync(int id, UpdateExpenseRequest request)
+    public async Task<ExpenseResponse?> UpdateAsync(int id, UpdateExpenseRequest request, CancellationToken cancellationToken = default)
     {
-        var category = await categoryRepository.GetByIdAsync(request.CategoryId);
+        var category = await categoryRepository.GetByIdAsync(request.CategoryId, cancellationToken);
         if (category is null)
             throw new KeyNotFoundException($"Category with id {request.CategoryId} not found.");
 
@@ -67,77 +56,93 @@ public class ExpenseService(
         {
             Id = id,
             Amount = request.Amount,
-            Date = DateTime.SpecifyKind(request.Date, DateTimeKind.Utc),
+            Date = ToUtc(request.Date),
             Description = request.Description,
             Type = request.Type,
             CategoryId = request.CategoryId
         };
 
-        var updated = await expenseRepository.UpdateAsync(expense);
+        var updated = await expenseRepository.UpdateAsync(expense, cancellationToken);
         return updated is null ? null : MapToResponse(updated);
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
-        return await expenseRepository.DeleteAsync(id);
+        return await expenseRepository.DeleteAsync(id, cancellationToken);
     }
 
-    public async Task<decimal> GetTotalByDayAsync(DateTime date)
+    public async Task<decimal> GetTotalByDayAsync(DateTime date, CancellationToken cancellationToken = default)
     {
         var start = date.Date;
         var end = start.AddDays(1);
-        return await expenseRepository.GetTotalByDateRangeAsync(start, end);
+        return await expenseRepository.GetTotalByDateRangeAsync(start, end, cancellationToken);
     }
 
-    public async Task<decimal> GetTotalByWeekAsync(DateTime date)
+    public async Task<decimal> GetTotalByWeekAsync(DateTime date, CancellationToken cancellationToken = default)
     {
-        var daysSinceMonday = (int)date.DayOfWeek - 1;
-        if (daysSinceMonday < 0) daysSinceMonday += 7;
-        var monday = date.Date.AddDays(-daysSinceMonday);
-        var nextMonday = monday.AddDays(7);
-        return await expenseRepository.GetTotalByDateRangeAsync(monday, nextMonday);
+        var weekStart = GetWeekStart(date);
+        return await expenseRepository.GetTotalByDateRangeAsync(weekStart, weekStart.AddDays(7), cancellationToken);
     }
 
-    public async Task<decimal> GetTotalByMonthAsync(int year, int month)
+    public async Task<decimal> GetTotalByMonthAsync(int year, int month, CancellationToken cancellationToken = default)
     {
         var start = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc);
         var end = start.AddMonths(1);
-        return await expenseRepository.GetTotalByDateRangeAsync(start, end);
+        return await expenseRepository.GetTotalByDateRangeAsync(start, end, cancellationToken);
     }
 
-    public async Task<decimal> GetTotalByYearAsync(int year)
+    public async Task<decimal> GetTotalByYearAsync(int year, CancellationToken cancellationToken = default)
     {
         var start = new DateTime(year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         var end = start.AddYears(1);
-        return await expenseRepository.GetTotalByDateRangeAsync(start, end);
+        return await expenseRepository.GetTotalByDateRangeAsync(start, end, cancellationToken);
     }
 
-    public async Task<decimal> GetTotalFixedAsync()
+    public async Task<decimal> GetTotalFixedAsync(CancellationToken cancellationToken = default)
     {
-        return await expenseRepository.GetTotalByTypeAsync(ExpenseType.Fixed);
+        return await expenseRepository.GetTotalByTypeAsync(ExpenseType.Fixed, cancellationToken);
     }
 
-    public async Task<decimal> GetTotalVariableAsync()
+    public async Task<decimal> GetTotalVariableAsync(CancellationToken cancellationToken = default)
     {
-        return await expenseRepository.GetTotalByTypeAsync(ExpenseType.Variable);
+        return await expenseRepository.GetTotalByTypeAsync(ExpenseType.Variable, cancellationToken);
     }
 
-    public async Task<ExpenseSummaryResponse> GetSummaryAsync()
+    public async Task<ExpenseSummaryResponse> GetSummaryAsync(CancellationToken cancellationToken = default)
     {
         var now = DateTime.UtcNow;
         var dayStart = now.Date;
-        var weekStart = now.Date.AddDays(-(int)now.DayOfWeek + 1);
+        var weekStart = GetWeekStart(now);
         var monthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
         var yearStart = new DateTime(now.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-        var totalByDay = await expenseRepository.GetTotalByDateRangeAsync(dayStart, dayStart.AddDays(1));
-        var totalByWeek = await expenseRepository.GetTotalByDateRangeAsync(weekStart, weekStart.AddDays(7));
-        var totalByMonth = await expenseRepository.GetTotalByDateRangeAsync(monthStart, monthStart.AddMonths(1));
-        var totalByYear = await expenseRepository.GetTotalByDateRangeAsync(yearStart, yearStart.AddYears(1));
-        var totalFixed = await expenseRepository.GetTotalByTypeAsync(ExpenseType.Fixed);
-        var totalVariable = await expenseRepository.GetTotalByTypeAsync(ExpenseType.Variable);
+        var summary = await expenseRepository.GetAggregatedSummaryAsync(dayStart, weekStart, monthStart, yearStart, cancellationToken);
 
-        return new ExpenseSummaryResponse(totalByDay, totalByWeek, totalByMonth, totalByYear, totalFixed, totalVariable);
+        return new ExpenseSummaryResponse(
+            summary.TotalByDay,
+            summary.TotalByWeek,
+            summary.TotalByMonth,
+            summary.TotalByYear,
+            summary.TotalFixed,
+            summary.TotalVariable
+        );
+    }
+
+    private static DateTime GetWeekStart(DateTime date)
+    {
+        var firstDayOfWeek = CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek;
+        var diff = (7 + (int)date.DayOfWeek - (int)firstDayOfWeek) % 7;
+        return date.Date.AddDays(-diff);
+    }
+
+    private static DateTime ToUtc(DateTime date)
+    {
+        return date.Kind switch
+        {
+            DateTimeKind.Utc => date,
+            DateTimeKind.Local => date.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(date, DateTimeKind.Utc)
+        };
     }
 
     private static ExpenseResponse MapToResponse(Expense expense)

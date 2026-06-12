@@ -1,16 +1,22 @@
+using FluentValidation;
+using MoneyControl.DTOs;
+
 namespace MoneyControl.Validators;
 
-// Placeholder: aquí irán las validaciones con FluentValidation.
-// Ejemplo futuro:
-//
-// public class CreateCategoryValidator : AbstractValidator<CreateCategoryRequest>
-// {
-//     public CreateCategoryValidator()
-//     {
-//         RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
-//         RuleFor(x => x.Type).NotEmpty().Must(t => t is "Income" or "Expense");
-//     }
-// }
-public static class CategoryValidator
+public class CreateCategoryValidator : AbstractValidator<CreateCategoryRequest>
 {
+    public CreateCategoryValidator()
+    {
+        RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
+        RuleFor(x => x.Description).MaximumLength(500);
+    }
+}
+
+public class UpdateCategoryValidator : AbstractValidator<UpdateCategoryRequest>
+{
+    public UpdateCategoryValidator()
+    {
+        RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
+        RuleFor(x => x.Description).MaximumLength(500);
+    }
 }

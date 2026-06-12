@@ -1,6 +1,21 @@
 @MoneyControl_HostAddress = http://localhost:5174
 
-GET {{MoneyControl_HostAddress}}/weatherforecast/
+GET {{MoneyControl_HostAddress}}/api/categories
+Accept: application/json
+
+###
+
+GET {{MoneyControl_HostAddress}}/api/expenses
+Accept: application/json
+
+###
+
+GET {{MoneyControl_HostAddress}}/api/incomes
+Accept: application/json
+
+###
+
+GET {{MoneyControl_HostAddress}}/api/loans
 Accept: application/json
 
 ###

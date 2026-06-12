@@ -1,20 +1,21 @@
 using MoneyControl.DTOs;
+using MoneyControl.Models;
 
 namespace MoneyControl.Services;
 
 public interface IExpenseService
 {
-    Task<PagedResponse<ExpenseResponse>> GetAllAsync(int page = 1, int pageSize = 20);
-    Task<ExpenseResponse?> GetByIdAsync(int id);
-    Task<PagedResponse<ExpenseResponse>> GetByCategoryAsync(int categoryId, int page = 1, int pageSize = 20);
-    Task<ExpenseResponse> CreateAsync(CreateExpenseRequest request);
-    Task<ExpenseResponse?> UpdateAsync(int id, UpdateExpenseRequest request);
-    Task<bool> DeleteAsync(int id);
-    Task<decimal> GetTotalByDayAsync(DateTime date);
-    Task<decimal> GetTotalByWeekAsync(DateTime date);
-    Task<decimal> GetTotalByMonthAsync(int year, int month);
-    Task<decimal> GetTotalByYearAsync(int year);
-    Task<decimal> GetTotalFixedAsync();
-    Task<decimal> GetTotalVariableAsync();
-    Task<ExpenseSummaryResponse> GetSummaryAsync();
+    Task<PagedResult<ExpenseResponse>> GetAllAsync(int page = 1, int pageSize = 20, CancellationToken cancellationToken = default);
+    Task<ExpenseResponse?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+    Task<PagedResult<ExpenseResponse>> GetByCategoryAsync(int categoryId, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default);
+    Task<ExpenseResponse> CreateAsync(CreateExpenseRequest request, CancellationToken cancellationToken = default);
+    Task<ExpenseResponse?> UpdateAsync(int id, UpdateExpenseRequest request, CancellationToken cancellationToken = default);
+    Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);
+    Task<decimal> GetTotalByDayAsync(DateTime date, CancellationToken cancellationToken = default);
+    Task<decimal> GetTotalByWeekAsync(DateTime date, CancellationToken cancellationToken = default);
+    Task<decimal> GetTotalByMonthAsync(int year, int month, CancellationToken cancellationToken = default);
+    Task<decimal> GetTotalByYearAsync(int year, CancellationToken cancellationToken = default);
+    Task<decimal> GetTotalFixedAsync(CancellationToken cancellationToken = default);
+    Task<decimal> GetTotalVariableAsync(CancellationToken cancellationToken = default);
+    Task<ExpenseSummaryResponse> GetSummaryAsync(CancellationToken cancellationToken = default);
 }

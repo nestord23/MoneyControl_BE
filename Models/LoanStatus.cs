@@ -1,8 +1,7 @@
-namespace MoneyControl.Models
+namespace MoneyControl.Models;
+
+public enum LoanStatus
 {
-    public enum LoanStatus
-    {
-        Pending,
-        Paid
-    }
+    Pending,
+    Paid
 }

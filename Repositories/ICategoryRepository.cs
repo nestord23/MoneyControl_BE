@@ -4,9 +4,9 @@ namespace MoneyControl.Repositories;
 
 public interface ICategoryRepository
 {
-    Task<PagedResult<Category>> GetAllAsync(int page = 1, int pageSize = 20);
-    Task<Category?> GetByIdAsync(int id);
-    Task<Category> CreateAsync(Category category);
-    Task<Category?> UpdateAsync(Category category);
-    Task<bool> DeleteAsync(int id);
+    Task<PagedResult<Category>> GetAllAsync(int page = 1, int pageSize = 20, CancellationToken cancellationToken = default);
+    Task<Category?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+    Task<Category> CreateAsync(Category category, CancellationToken cancellationToken = default);
+    Task<Category?> UpdateAsync(Category category, CancellationToken cancellationToken = default);
+    Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);
 }

@@ -35,3 +35,10 @@ public record LoanResponse(
     DateTime Date,
     LoanStatus Status
 );
+
+public record LoanSummaryResponse(
+    decimal TotalPending,
+    decimal TotalPaid,
+    int PendingCount,
+    int PaidCount
+);
