@@ -9,9 +9,11 @@ namespace MoneyControl.Controllers;
 public class CategoriesController(ICategoryService categoryService) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<CategoryResponse>>> GetAll()
+    public async Task<ActionResult<PagedResponse<CategoryResponse>>> GetAll(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
     {
-        var categories = await categoryService.GetAllAsync();
+        var categories = await categoryService.GetAllAsync(page, pageSize);
         return Ok(categories);
     }
 

@@ -6,9 +6,18 @@ namespace MoneyControl.Repositories;
 
 public class CategoryRepository(AppDbContext context) : ICategoryRepository
 {
-    public async Task<IEnumerable<Category>> GetAllAsync()
+    public async Task<PagedResult<Category>> GetAllAsync(int page = 1, int pageSize = 20)
     {
-        return await context.Categories.ToListAsync();
+        var query = context.Categories.AsNoTracking();
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PagedResult<Category>(items, totalCount, page, pageSize, totalPages);
     }
 
     public async Task<Category?> GetByIdAsync(int id)

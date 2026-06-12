@@ -6,10 +6,16 @@ namespace MoneyControl.Services;
 
 public class CategoryService(ICategoryRepository repository) : ICategoryService
 {
-    public async Task<IEnumerable<CategoryResponse>> GetAllAsync()
+    public async Task<PagedResponse<CategoryResponse>> GetAllAsync(int page = 1, int pageSize = 20)
     {
-        var categories = await repository.GetAllAsync();
-        return categories.Select(MapToResponse);
+        var result = await repository.GetAllAsync(page, pageSize);
+        return new PagedResponse<CategoryResponse>(
+            result.Items.Select(MapToResponse),
+            result.TotalCount,
+            result.Page,
+            result.PageSize,
+            result.TotalPages
+        );
     }
 
     public async Task<CategoryResponse?> GetByIdAsync(int id)

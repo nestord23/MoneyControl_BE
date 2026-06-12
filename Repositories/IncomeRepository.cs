@@ -6,14 +6,48 @@ namespace MoneyControl.Repositories;
 
 public class IncomeRepository(AppDbContext context) : IIncomeRepository
 {
-    public async Task<IEnumerable<Income>> GetAllAsync()
+    public async Task<PagedResult<Income>> GetAllAsync(int page = 1, int pageSize = 20)
     {
-        return await context.Incomes.ToListAsync();
+        var query = context.Incomes.AsNoTracking();
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PagedResult<Income>(items, totalCount, page, pageSize, totalPages);
     }
 
     public async Task<Income?> GetByIdAsync(int id)
     {
         return await context.Incomes.FindAsync(id);
+    }
+
+    public async Task<PagedResult<Income>> GetByDateRangeAsync(DateTime start, DateTime end, int page = 1, int pageSize = 20)
+    {
+        var query = context.Incomes
+            .AsNoTracking()
+            .Where(i => i.Date >= start && i.Date < end);
+
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PagedResult<Income>(items, totalCount, page, pageSize, totalPages);
+    }
+
+    public async Task<decimal> GetTotalByDateRangeAsync(DateTime start, DateTime end)
+    {
+        return await context.Incomes
+            .AsNoTracking()
+            .Where(i => i.Date >= start && i.Date < end)
+            .SumAsync(i => i.Amount);
     }
 
     public async Task<Income> CreateAsync(Income income)
