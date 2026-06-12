@@ -1,4 +1,5 @@
 using MoneyControl.DTOs;
+using MoneyControl.Helpers;
 using MoneyControl.Models;
 using MoneyControl.Repositories;
 
@@ -94,15 +95,7 @@ public class LoanService(ILoanRepository repository) : ILoanService
         return new LoanSummaryResponse(summary.TotalPending, summary.TotalPaid, summary.PendingCount, summary.PaidCount);
     }
 
-    private static DateTime ToUtc(DateTime date)
-    {
-        return date.Kind switch
-        {
-            DateTimeKind.Utc => date,
-            DateTimeKind.Local => date.ToUniversalTime(),
-            _ => DateTime.SpecifyKind(date, DateTimeKind.Utc)
-        };
-    }
+    private static DateTime ToUtc(DateTime date) => DateTimeHelper.ToUtc(date);
 
     private static LoanResponse MapToResponse(Loan loan)
     {

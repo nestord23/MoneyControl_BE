@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="tests\MoneyControl.UnitTests\MoneyControl.UnitTests.csproj" />
+  <Project Path="tests\MoneyControl.IntegrationTests\MoneyControl.IntegrationTests.csproj" />
+  <Project Path="MoneyControl.csproj" />
+</Solution>

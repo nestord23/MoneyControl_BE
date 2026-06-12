@@ -1,5 +1,6 @@
 using System.Globalization;
 using MoneyControl.DTOs;
+using MoneyControl.Helpers;
 using MoneyControl.Models;
 using MoneyControl.Repositories;
 
@@ -135,15 +136,7 @@ public class ExpenseService(
         return date.Date.AddDays(-diff);
     }
 
-    private static DateTime ToUtc(DateTime date)
-    {
-        return date.Kind switch
-        {
-            DateTimeKind.Utc => date,
-            DateTimeKind.Local => date.ToUniversalTime(),
-            _ => DateTime.SpecifyKind(date, DateTimeKind.Utc)
-        };
-    }
+    private static DateTime ToUtc(DateTime date) => DateTimeHelper.ToUtc(date);
 
     private static ExpenseResponse MapToResponse(Expense expense)
     {
