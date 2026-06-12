@@ -53,14 +53,14 @@ public class IncomeService(IIncomeRepository repository) : IIncomeService
 
     public async Task<decimal> GetTotalByDayAsync(DateTime date, CancellationToken cancellationToken = default)
     {
-        var start = date.Date;
+        var start = ToUtc(date.Date);
         var end = start.AddDays(1);
         return await repository.GetTotalByDateRangeAsync(start, end, cancellationToken);
     }
 
     public async Task<decimal> GetTotalByWeekAsync(DateTime date, CancellationToken cancellationToken = default)
     {
-        var weekStart = GetWeekStart(date);
+        var weekStart = ToUtc(GetWeekStart(date));
         return await repository.GetTotalByDateRangeAsync(weekStart, weekStart.AddDays(7), cancellationToken);
     }
 
