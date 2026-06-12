@@ -1,48 +1,47 @@
-using MoneyControl.DTOs;
+using Microsoft.EntityFrameworkCore;
+using MoneyControl.Data;
+using MoneyControl.Models;
 
 namespace MoneyControl.Repositories;
 
-public class CategoryRepository : ICategoryRepository
+public class CategoryRepository(AppDbContext context) : ICategoryRepository
 {
-    private readonly List<CategoryResponse> _categories = [];
-    private int _nextId = 1;
-
-    public Task<IEnumerable<CategoryResponse>> GetAllAsync()
+    public async Task<IEnumerable<Category>> GetAllAsync()
     {
-        return Task.FromResult(_categories.AsEnumerable());
+        return await context.Categories.ToListAsync();
     }
 
-    public Task<CategoryResponse?> GetByIdAsync(int id)
+    public async Task<Category?> GetByIdAsync(int id)
     {
-        var category = _categories.FirstOrDefault(c => c.Id == id);
-        return Task.FromResult(category);
+        return await context.Categories.FindAsync(id);
     }
 
-    public Task<CategoryResponse> CreateAsync(CreateCategoryRequest request)
+    public async Task<Category> CreateAsync(Category category)
     {
-        var category = new CategoryResponse(_nextId++, request.Name, request.Description, request.Type, DateTime.UtcNow);
-        _categories.Add(category);
-        return Task.FromResult(category);
+        context.Categories.Add(category);
+        await context.SaveChangesAsync();
+        return category;
     }
 
-    public Task<CategoryResponse?> UpdateAsync(int id, UpdateCategoryRequest request)
+    public async Task<Category?> UpdateAsync(Category category)
     {
-        var index = _categories.FindIndex(c => c.Id == id);
-        if (index == -1)
-            return Task.FromResult<CategoryResponse?>(null);
+        var existing = await context.Categories.FindAsync(category.Id);
+        if (existing is null)
+            return null;
 
-        var updated = _categories[index] with
-        {
-            // record with-expressions on properties not defined as init-only
-        };
-
-        _categories[index] = new CategoryResponse(id, request.Name, request.Description, request.Type, _categories[index].CreatedAt);
-        return Task.FromResult<CategoryResponse?>(_categories[index]);
+        context.Entry(existing).CurrentValues.SetValues(category);
+        await context.SaveChangesAsync();
+        return existing;
     }
 
-    public Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id)
     {
-        var removed = _categories.RemoveAll(c => c.Id == id);
-        return Task.FromResult(removed > 0);
+        var category = await context.Categories.FindAsync(id);
+        if (category is null)
+            return false;
+
+        context.Categories.Remove(category);
+        await context.SaveChangesAsync();
+        return true;
     }
 }

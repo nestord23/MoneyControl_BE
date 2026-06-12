@@ -1,32 +1,55 @@
 using MoneyControl.DTOs;
+using MoneyControl.Models;
 using MoneyControl.Repositories;
 
 namespace MoneyControl.Services;
 
 public class CategoryService(ICategoryRepository repository) : ICategoryService
 {
-    public Task<IEnumerable<CategoryResponse>> GetAllAsync()
+    public async Task<IEnumerable<CategoryResponse>> GetAllAsync()
     {
-        return repository.GetAllAsync();
+        var categories = await repository.GetAllAsync();
+        return categories.Select(MapToResponse);
     }
 
-    public Task<CategoryResponse?> GetByIdAsync(int id)
+    public async Task<CategoryResponse?> GetByIdAsync(int id)
     {
-        return repository.GetByIdAsync(id);
+        var category = await repository.GetByIdAsync(id);
+        return category is null ? null : MapToResponse(category);
     }
 
-    public Task<CategoryResponse> CreateAsync(CreateCategoryRequest request)
+    public async Task<CategoryResponse> CreateAsync(CreateCategoryRequest request)
     {
-        return repository.CreateAsync(request);
+        var category = new Category
+        {
+            Name = request.Name,
+            Description = request.Description
+        };
+
+        var created = await repository.CreateAsync(category);
+        return MapToResponse(created);
     }
 
-    public Task<CategoryResponse?> UpdateAsync(int id, UpdateCategoryRequest request)
+    public async Task<CategoryResponse?> UpdateAsync(int id, UpdateCategoryRequest request)
     {
-        return repository.UpdateAsync(id, request);
+        var category = new Category
+        {
+            Id = id,
+            Name = request.Name,
+            Description = request.Description
+        };
+
+        var updated = await repository.UpdateAsync(category);
+        return updated is null ? null : MapToResponse(updated);
     }
 
-    public Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id)
     {
-        return repository.DeleteAsync(id);
+        return await repository.DeleteAsync(id);
+    }
+
+    private static CategoryResponse MapToResponse(Category category)
+    {
+        return new CategoryResponse(category.Id, category.Name, category.Description);
     }
 }
