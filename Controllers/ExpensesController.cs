@@ -63,6 +63,13 @@ public class ExpensesController(IExpenseService expenseService) : ControllerBase
         return Ok(total);
     }
 
+    [HttpGet("monthly")]
+    public async Task<ActionResult<decimal[]>> GetMonthlyTotals([FromQuery] int year, CancellationToken cancellationToken = default)
+    {
+        var totals = await expenseService.GetMonthlyTotalsAsync(year, cancellationToken);
+        return Ok(totals);
+    }
+
     [HttpGet("total/year")]
     public async Task<ActionResult<decimal>> GetTotalByYear([FromQuery] int year, CancellationToken cancellationToken = default)
     {

@@ -11,6 +11,7 @@ public interface IExpenseRepository
     Task<PagedResult<Expense>> GetByTypeAsync(ExpenseType type, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default);
     Task<decimal> GetTotalByDateRangeAsync(DateTime start, DateTime end, CancellationToken cancellationToken = default);
     Task<decimal> GetTotalByTypeAsync(ExpenseType type, CancellationToken cancellationToken = default);
+    Task<decimal[]> GetMonthlyTotalsAsync(int year, CancellationToken cancellationToken = default);
     Task<ExpenseSummary> GetAggregatedSummaryAsync(DateTime dayStart, DateTime weekStart, DateTime monthStart, DateTime yearStart, CancellationToken cancellationToken = default);
     Task<bool> ExistsByCategoryAsync(int categoryId, CancellationToken cancellationToken = default);
     Task<Expense> CreateAsync(Expense expense, CancellationToken cancellationToken = default);

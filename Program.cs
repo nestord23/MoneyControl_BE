@@ -34,6 +34,7 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IExpenseService, ExpenseService>();
 builder.Services.AddScoped<IIncomeService, IncomeService>();
 builder.Services.AddScoped<ILoanService, LoanService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 builder.Services.AddResponseCaching();
 builder.Services.AddCors(options =>

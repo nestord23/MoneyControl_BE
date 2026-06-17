@@ -71,6 +71,11 @@ public class IncomeService(IIncomeRepository repository) : IIncomeService
         return await repository.GetTotalByDateRangeAsync(start, end, cancellationToken);
     }
 
+    public async Task<decimal[]> GetMonthlyTotalsAsync(int year, CancellationToken cancellationToken = default)
+    {
+        return await repository.GetMonthlyTotalsAsync(year, cancellationToken);
+    }
+
     public async Task<decimal> GetTotalByYearAsync(int year, CancellationToken cancellationToken = default)
     {
         var start = new DateTime(year, 1, 1, 0, 0, 0, DateTimeKind.Utc);

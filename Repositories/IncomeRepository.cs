@@ -52,6 +52,24 @@ public class IncomeRepository(AppDbContext context) : IIncomeRepository
             .SumAsync(i => i.Amount, cancellationToken);
     }
 
+    public async Task<decimal[]> GetMonthlyTotalsAsync(int year, CancellationToken cancellationToken = default)
+    {
+        var start = new DateTime(year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var end = start.AddYears(1);
+
+        var raw = await context.Incomes
+            .AsNoTracking()
+            .Where(i => i.Date >= start && i.Date < end)
+            .GroupBy(i => i.Date.Month)
+            .Select(g => new { Month = g.Key, Total = g.Sum(i => i.Amount) })
+            .ToListAsync(cancellationToken);
+
+        var result = new decimal[12];
+        foreach (var item in raw)
+            result[item.Month - 1] = item.Total;
+        return result;
+    }
+
     public async Task<IncomeSummary> GetAggregatedSummaryAsync(DateTime dayStart, DateTime weekStart, DateTime monthStart, DateTime yearStart, CancellationToken cancellationToken = default)
     {
         var yearEnd = yearStart.AddYears(1);

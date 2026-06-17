@@ -98,6 +98,24 @@ public class ExpenseRepository(AppDbContext context) : IExpenseRepository
             .SumAsync(e => e.Amount, cancellationToken);
     }
 
+    public async Task<decimal[]> GetMonthlyTotalsAsync(int year, CancellationToken cancellationToken = default)
+    {
+        var start = new DateTime(year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var end = start.AddYears(1);
+
+        var raw = await context.Expenses
+            .AsNoTracking()
+            .Where(e => e.Date >= start && e.Date < end)
+            .GroupBy(e => e.Date.Month)
+            .Select(g => new { Month = g.Key, Total = g.Sum(e => e.Amount) })
+            .ToListAsync(cancellationToken);
+
+        var result = new decimal[12];
+        foreach (var item in raw)
+            result[item.Month - 1] = item.Total;
+        return result;
+    }
+
     public async Task<ExpenseSummary> GetAggregatedSummaryAsync(DateTime dayStart, DateTime weekStart, DateTime monthStart, DateTime yearStart, CancellationToken cancellationToken = default)
     {
         var yearEnd = yearStart.AddYears(1);

@@ -14,6 +14,7 @@ public interface IExpenseService
     Task<decimal> GetTotalByDayAsync(DateTime date, CancellationToken cancellationToken = default);
     Task<decimal> GetTotalByWeekAsync(DateTime date, CancellationToken cancellationToken = default);
     Task<decimal> GetTotalByMonthAsync(int year, int month, CancellationToken cancellationToken = default);
+    Task<decimal[]> GetMonthlyTotalsAsync(int year, CancellationToken cancellationToken = default);
     Task<decimal> GetTotalByYearAsync(int year, CancellationToken cancellationToken = default);
     Task<decimal> GetTotalFixedAsync(CancellationToken cancellationToken = default);
     Task<decimal> GetTotalVariableAsync(CancellationToken cancellationToken = default);
