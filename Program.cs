@@ -36,6 +36,15 @@ builder.Services.AddScoped<IIncomeService, IncomeService>();
 builder.Services.AddScoped<ILoanService, LoanService>();
 
 builder.Services.AddResponseCaching();
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") // URL Para el frontend
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 var app = builder.Build();
 
@@ -46,6 +55,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors();
 
 app.UseMiddleware<ExceptionMiddleware>();
 

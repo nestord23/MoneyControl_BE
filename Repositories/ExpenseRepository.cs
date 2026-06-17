@@ -67,9 +67,9 @@ public class ExpenseRepository(AppDbContext context) : IExpenseRepository
     public async Task<PagedResult<Expense>> GetByTypeAsync(ExpenseType type, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
     {
         var query = context.Expenses
-            .AsNoTracking()
-            .Include(e => e.Category)
-            .Where(e => e.Type == type);
+        .AsNoTracking()
+        .Include(e => e.Category)
+        .Where(e => e.Type == type);
 
         var totalCount = await query.CountAsync(cancellationToken);
         var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
